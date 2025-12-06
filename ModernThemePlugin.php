@@ -40,7 +40,26 @@ class ModernThemePlugin extends Plugin {
     private static $assets_loaded = false;
 
     function bootstrap() {
-        // Connect to signals for injecting assets
+        global $ost;
+
+        // Debug: log that bootstrap was called
+        error_log('ModernThemePlugin::bootstrap() called');
+
+        // Method 1: Use addExtraHeader (works in <head>)
+        if ($ost) {
+            $base = ROOT_PATH . 'include/plugins/modern-theme-plugin/assets/';
+
+            $ost->addExtraHeader('<!-- MODERN THEME ACTIVE -->');
+            $ost->addExtraHeader('<link rel="preconnect" href="https://fonts.googleapis.com">');
+            $ost->addExtraHeader('<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">');
+            $ost->addExtraHeader('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">');
+            $ost->addExtraHeader('<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">');
+            $ost->addExtraHeader('<link rel="stylesheet" href="' . $base . 'css/modern-theme.css">');
+            $ost->addExtraHeader('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>', true);
+            $ost->addExtraHeader('<script src="' . $base . 'js/modern-theme.js"></script>', true);
+        }
+
+        // Method 2: Also connect to signal for ticket pages
         Signal::connect('object.view', array($this, 'injectAssets'));
     }
 
