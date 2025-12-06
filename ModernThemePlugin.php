@@ -17,6 +17,9 @@ class ModernThemePlugin extends Plugin {
         $plugin_path = $this->getInstallPath();
         $asset_url = ROOT_PATH . 'include/' . $plugin_path . 'assets/';
 
+        // Debug: Add HTML comment to verify plugin is loading
+        $ost->addExtraHeader('<!-- Modern Theme Plugin LOADED - Asset URL: ' . $asset_url . ' -->');
+
         // Get configuration values (with defaults if no config)
         $config = $this->getConfig();
         $theme_mode = $config ? ($config->get('theme_mode') ?: 'auto') : 'auto';
