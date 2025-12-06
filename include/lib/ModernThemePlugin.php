@@ -1,6 +1,6 @@
 <?php
-require_once(INCLUDE_DIR . 'class.plugin.php');
-require_once('ModernThemePluginConfig.php');
+
+require_once(__DIR__ . '/ModernThemePluginConfig.php');
 
 class ModernThemePlugin extends Plugin {
 

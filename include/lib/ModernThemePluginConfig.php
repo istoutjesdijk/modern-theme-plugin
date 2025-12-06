@@ -1,6 +1,4 @@
 <?php
-require_once(INCLUDE_DIR . 'class.plugin.php');
-require_once(INCLUDE_DIR . 'class.forms.php');
 
 class ModernThemePluginConfig extends PluginConfig {
 
