@@ -6,6 +6,17 @@ class ModernThemePlugin extends Plugin {
 
     var $config_class = 'ModernThemePluginConfig';
 
+    /**
+     * init() is called for ALL plugins, even disabled ones
+     */
+    function init() {
+        // Debug: This should ALWAYS appear if plugin is installed
+        global $ost;
+        if ($ost) {
+            $ost->addExtraHeader('<!-- Modern Theme Plugin INIT called -->');
+        }
+    }
+
     function bootstrap() {
         global $ost;
 
