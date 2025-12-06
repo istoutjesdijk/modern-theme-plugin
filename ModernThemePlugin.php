@@ -1,21 +1,65 @@
 <?php
+/**
+ * Modern Theme Plugin for osTicket
+ * A refined, modern Bootstrap 5 theme with warm aesthetics
+ */
 
-require_once __DIR__ . '/config.php';
+class ModernThemePluginConfig extends PluginConfig {
+
+    function getOptions() {
+        return array(
+            'theme_mode' => new ChoiceField(array(
+                'label'   => 'Theme Mode',
+                'hint'    => 'Choose between light, dark, or auto (follows system preference).',
+                'default' => 'auto',
+                'choices' => array(
+                    'auto'  => 'Auto (System Preference)',
+                    'light' => 'Light Mode',
+                    'dark'  => 'Dark Mode',
+                ),
+            )),
+
+            'primary_color' => new TextboxField(array(
+                'label'   => 'Primary Color',
+                'hint'    => 'Main brand color in hex format (e.g., #c2410c)',
+                'default' => '#c2410c',
+                'configuration' => array('size' => 20, 'length' => 7),
+            )),
+
+            'accent_color' => new TextboxField(array(
+                'label'   => 'Accent Color',
+                'hint'    => 'Secondary accent color in hex format (e.g., #ea580c)',
+                'default' => '#ea580c',
+                'configuration' => array('size' => 20, 'length' => 7),
+            )),
+
+            'border_radius' => new ChoiceField(array(
+                'label'   => 'Border Radius Style',
+                'default' => 'rounded',
+                'choices' => array(
+                    'sharp'   => 'Sharp (No rounding)',
+                    'subtle'  => 'Subtle',
+                    'rounded' => 'Rounded (Modern)',
+                    'pill'    => 'Pill (Very rounded)',
+                ),
+            )),
+
+            'enable_animations' => new BooleanField(array(
+                'label'   => 'Enable Animations',
+                'default' => true,
+            )),
+
+            'enable_glassmorphism' => new BooleanField(array(
+                'label'   => 'Enable Glassmorphism',
+                'default' => true,
+            )),
+        );
+    }
+}
 
 class ModernThemePlugin extends Plugin {
 
     var $config_class = 'ModernThemePluginConfig';
-
-    /**
-     * init() is called for ALL plugins, even disabled ones
-     */
-    function init() {
-        // Debug: This should ALWAYS appear if plugin is installed
-        global $ost;
-        if ($ost) {
-            $ost->addExtraHeader('<!-- Modern Theme Plugin INIT called -->');
-        }
-    }
 
     function bootstrap() {
         global $ost;
@@ -28,29 +72,28 @@ class ModernThemePlugin extends Plugin {
         $plugin_path = $this->getInstallPath();
         $asset_url = ROOT_PATH . 'include/' . $plugin_path . 'assets/';
 
-        // Debug: Add HTML comment to verify plugin is loading
-        $ost->addExtraHeader('<!-- Modern Theme Plugin LOADED - Asset URL: ' . $asset_url . ' -->');
+        // Debug comment
+        $ost->addExtraHeader('<!-- Modern Theme Plugin v1.0 ACTIVE -->');
 
-        // Get configuration values (with defaults if no config)
+        // Get configuration values (with defaults)
         $config = $this->getConfig();
         $theme_mode = $config ? ($config->get('theme_mode') ?: 'auto') : 'auto';
         $primary_color = $config ? ($config->get('primary_color') ?: '#c2410c') : '#c2410c';
         $accent_color = $config ? ($config->get('accent_color') ?: '#ea580c') : '#ea580c';
         $enable_animations = $config ? ($config->get('enable_animations') !== false) : true;
         $enable_glassmorphism = $config ? ($config->get('enable_glassmorphism') !== false) : true;
-        $custom_logo = $config ? ($config->get('custom_logo') ?: '') : '';
         $border_radius = $config ? ($config->get('border_radius') ?: 'rounded') : 'rounded';
 
-        // Inject Google Fonts - Elegant serif + modern sans
+        // Inject Google Fonts
         $ost->addExtraHeader(
             '<link rel="preconnect" href="https://fonts.googleapis.com">' .
             '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' .
-            '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">'
+            '<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet">'
         );
 
         // Inject Bootstrap 5
         $ost->addExtraHeader(
-            '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">'
+            '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">'
         );
 
         // Inject Bootstrap Icons
@@ -60,122 +103,45 @@ class ModernThemePlugin extends Plugin {
 
         // Inject custom theme CSS
         $ost->addExtraHeader(
-            '<link rel="stylesheet" href="' . $asset_url . 'css/modern-theme.css?v=' . $this->getVersion() . '">'
+            '<link rel="stylesheet" href="' . $asset_url . 'css/modern-theme.css">'
         );
 
-        // Inject dynamic CSS variables based on config
-        $border_radius_value = $this->getBorderRadiusValue($border_radius);
+        // Inject dynamic CSS variables
+        $radius_values = array('sharp' => '0', 'subtle' => '0.375rem', 'rounded' => '0.75rem', 'pill' => '2rem');
+        $radius = isset($radius_values[$border_radius]) ? $radius_values[$border_radius] : '0.75rem';
 
-        $dynamic_css = '<style id="modern-theme-vars">
+        $ost->addExtraHeader('<style id="modern-theme-vars">
             :root {
                 --mt-primary: ' . $this->sanitizeColor($primary_color) . ';
-                --mt-primary-rgb: ' . $this->hexToRgb($primary_color) . ';
                 --mt-accent: ' . $this->sanitizeColor($accent_color) . ';
-                --mt-accent-rgb: ' . $this->hexToRgb($accent_color) . ';
-                --mt-border-radius: ' . $border_radius_value . ';
-                --mt-animations: ' . ($enable_animations ? '1' : '0') . ';
-                --mt-glassmorphism: ' . ($enable_glassmorphism ? '1' : '0') . ';
-            }';
+                --mt-border-radius: ' . $radius . ';
+            }
+        </style>');
 
-        // Theme mode handling
-        if ($theme_mode === 'dark') {
-            $dynamic_css .= '[data-mt-theme="dark"] { color-scheme: dark; }';
-        } elseif ($theme_mode === 'light') {
-            $dynamic_css .= '[data-mt-theme="light"] { color-scheme: light; }';
-        }
-
-        // Custom logo override
-        if (!empty($custom_logo)) {
-            $dynamic_css .= '
-            .modern-theme .logo img,
-            .modern-theme #logo img,
-            .modern-theme .company-logo img {
-                content: url("' . htmlspecialchars($custom_logo, ENT_QUOTES) . '") !important;
-            }';
-        }
-
-        $dynamic_css .= '</style>';
-        $ost->addExtraHeader($dynamic_css);
-
-        // Inject Bootstrap 5 JS bundle
+        // Inject Bootstrap JS
         $ost->addExtraHeader(
-            '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>',
             true
         );
 
-        // Inject custom theme JS
+        // Inject theme JS
         $ost->addExtraHeader(
-            '<script src="' . $asset_url . 'js/modern-theme.js?v=' . $this->getVersion() . '"></script>',
+            '<script src="' . $asset_url . 'js/modern-theme.js"></script>',
             true
         );
 
-        // Initialize theme with config
-        $theme_config_json = json_encode(array(
-            'themeMode' => $theme_mode,
-            'animations' => $enable_animations,
-            'glassmorphism' => $enable_glassmorphism,
-        ));
-
+        // Initialize theme
         $ost->addExtraHeader(
-            '<script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    if (typeof ModernTheme !== "undefined") {
-                        ModernTheme.init(' . $theme_config_json . ');
-                    }
-                });
-            </script>',
+            '<script>document.addEventListener("DOMContentLoaded", function() { if(typeof ModernTheme !== "undefined") ModernTheme.init({themeMode:"' . $theme_mode . '"}); });</script>',
             true
         );
     }
 
-    /**
-     * Sanitize hex color input
-     */
     private function sanitizeColor($color) {
         $color = trim($color);
-        if (preg_match('/^#[a-fA-F0-9]{6}$/', $color)) {
+        if (preg_match('/^#[a-fA-F0-9]{3,6}$/', $color)) {
             return $color;
         }
-        if (preg_match('/^#[a-fA-F0-9]{3}$/', $color)) {
-            return $color;
-        }
-        return '#c2410c'; // Default fallback
+        return '#c2410c';
     }
-
-    /**
-     * Convert hex color to RGB values
-     */
-    private function hexToRgb($hex) {
-        $hex = ltrim($hex, '#');
-
-        if (strlen($hex) === 3) {
-            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-        }
-
-        if (strlen($hex) !== 6) {
-            return '194, 65, 12'; // Default fallback
-        }
-
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
-
-        return "$r, $g, $b";
-    }
-
-    /**
-     * Get border radius CSS value from config option
-     */
-    private function getBorderRadiusValue($option) {
-        $values = array(
-            'sharp'   => '0',
-            'subtle'  => '0.375rem',
-            'rounded' => '0.75rem',
-            'pill'    => '2rem',
-        );
-
-        return isset($values[$option]) ? $values[$option] : $values['rounded'];
-    }
-
 }
-?>
