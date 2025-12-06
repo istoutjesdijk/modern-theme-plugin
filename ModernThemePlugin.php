@@ -13,23 +13,19 @@ class ModernThemePlugin extends Plugin {
             return;
         }
 
-        $config = $this->getConfig();
-        if (!$config) {
-            return;
-        }
-
         // Get plugin asset URL
         $plugin_path = $this->getInstallPath();
         $asset_url = ROOT_PATH . 'include/' . $plugin_path . 'assets/';
 
-        // Get configuration values
-        $theme_mode = $config->get('theme_mode') ?: 'auto';
-        $primary_color = $config->get('primary_color') ?: '#c2410c';
-        $accent_color = $config->get('accent_color') ?: '#ea580c';
-        $enable_animations = $config->get('enable_animations') !== false;
-        $enable_glassmorphism = $config->get('enable_glassmorphism') !== false;
-        $custom_logo = $config->get('custom_logo') ?: '';
-        $border_radius = $config->get('border_radius') ?: 'rounded';
+        // Get configuration values (with defaults if no config)
+        $config = $this->getConfig();
+        $theme_mode = $config ? ($config->get('theme_mode') ?: 'auto') : 'auto';
+        $primary_color = $config ? ($config->get('primary_color') ?: '#c2410c') : '#c2410c';
+        $accent_color = $config ? ($config->get('accent_color') ?: '#ea580c') : '#ea580c';
+        $enable_animations = $config ? ($config->get('enable_animations') !== false) : true;
+        $enable_glassmorphism = $config ? ($config->get('enable_glassmorphism') !== false) : true;
+        $custom_logo = $config ? ($config->get('custom_logo') ?: '') : '';
+        $border_radius = $config ? ($config->get('border_radius') ?: 'rounded') : 'rounded';
 
         // Inject Google Fonts - Elegant serif + modern sans
         $ost->addExtraHeader(
